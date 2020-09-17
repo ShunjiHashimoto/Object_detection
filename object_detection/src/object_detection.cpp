@@ -74,21 +74,28 @@ class ImageConverter{
         // 各輪郭をcontourArea関数に渡し、最大面積を持つ輪郭を探す
         double max_area = 0;
         int max_area_contour = -1;
-        for(int j=0; j<contours.size(); j++){
+        if(contours.size()){
+          for(int j=0; j<contours.size(); j++){
             double area = cv::contourArea(contours.at(j));
             if( max_area < area ){
-                max_area = area;
-                max_area_contour=j;
-            }
+              max_area = area;
+              max_area_contour=j;
+              }
+          }
+         // 最大面積を持つ輪郭の最小外接円を取得
+         cv::minEnclosingCircle(contours.at(max_area_contour), center, radius);
+         // 最小外接円を描画(画像、円の中心座標、半径、色、線の太さ)
+         cv::circle(cv_ptr->image, center, radius, cv::Scalar(0,0,255),3,4);
+         // cv::circle(cv_image2, center, radius, cv::Scalar(0,0,255),3,4);
+         // cv::circle(bin_image, center, radius, cv::Scalar(0,0,255),3,4);
         }
-        // 最大面積を持つ輪郭の最小外接円を取得
-        cv::minEnclosingCircle(contours.at(max_area_contour), center, radius);
-
-        // 最小外接円を描画(画像、円の中心座標、半径、色、線の太さ)
-        cv::circle(cv_ptr->image, center, radius, cv::Scalar(0,0,255),3,4);
-        // cv::circle(cv_image2, center, radius, cv::Scalar(0,0,255),3,4);
-        // cv::circle(bin_image, center, radius, cv::Scalar(0,0,255),3,4);
-      }catch(CvErrorCallback){}
+        else{
+          ROS_INFO("target nothing!");
+          return;
+        }
+      }catch(CvErrorCallback){
+        ROS_ERROR("error CvErrorCallback");
+      }
 
       // 画面中心から最小外接円の中心へのベクトルを描画
       p1 = cv::Point2f(cv_ptr->image.size().width/2,cv_ptr->image.size().height/2);
